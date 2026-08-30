@@ -1,3 +1,7 @@
+use env_manager::logger::{Logger, SeverityLevel};
+
 fn main() {
-    println!("Hello, world!");
+    let logger = Logger::new(SeverityLevel::Debug);
+
+    _ = logger.info("Hello, world!");
 }
