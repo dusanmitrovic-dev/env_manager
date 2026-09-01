@@ -43,4 +43,4 @@ If this is not a feature, change the title prefix and label:
 <!-- Add all specific criteria required to close this issue. -->
 - [ ] Criteria 1.
 - [ ] Criteria 2.
-- [ ] Documentation updated.
+- [ ] Criteria 3.
