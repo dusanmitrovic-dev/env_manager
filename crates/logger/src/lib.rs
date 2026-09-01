@@ -3,6 +3,11 @@
 //! Provides logging features with standard severity levels.
 //! Based on: https://en.wikipedia.org/wiki/Syslog.
 
+use std::io::{self, Write};
+
+pub mod error;
+use crate::error::LoggerError;
+
 /// Standard severities of issues.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(u8)]
@@ -41,10 +46,6 @@ impl SeverityLevel {
         }
     }
 }
-
-use std::io::{self, Write};
-
-use crate::error::LoggerError;
 
 /// The maximum allowed length of the log message. Default value to which
 /// logger will truncate over the limit log messages.

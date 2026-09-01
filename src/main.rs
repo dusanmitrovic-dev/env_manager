@@ -1,4 +1,4 @@
-use env_manager::logger::{Logger, SeverityLevel};
+use logger::{Logger, SeverityLevel};
 
 fn main() {
     let logger = Logger::new(SeverityLevel::Debug);

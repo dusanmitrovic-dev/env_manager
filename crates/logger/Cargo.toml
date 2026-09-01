@@ -1,0 +1,9 @@
+[package]
+name = "logger"
+version = "0.1.0"
+edition = "2024"
+authors = ["Dušan Mitrović <dusan.mitrovic.developer@gmail.com>"]
+license = "MIT"
+description = "Bounded, Syslog based logging system."
+
+[dependencies]
