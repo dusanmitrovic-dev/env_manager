@@ -32,7 +32,6 @@ assignees: ''
 ### Acceptance Criteria
 <!-- Add all specific criteria required to close this issue. -->
 - [ ] The reported problem is resolved.
-- [ ] Documentation updated.
 
 ### Environment
 - **Device:** [e.g., Desktop, Android].
