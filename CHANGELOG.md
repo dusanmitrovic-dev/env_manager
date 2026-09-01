@@ -15,3 +15,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Decouple logger into standalone crate (#5).
+- Update acceptance and verification clauses in issue and PR templates (#7).
