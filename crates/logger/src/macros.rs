@@ -1,3 +1,6 @@
+/// Logs a lazily evaluated message with [SeverityLevel::Emerg].
+///
+/// Formatting is skipped entirely if the severity level is disabled.
 #[macro_export]
 macro_rules! emergency {
     ($logger:expr, $($arg:tt)+) => {
@@ -9,6 +12,9 @@ macro_rules! emergency {
     };
 }
 
+/// Logs a lazily evaluated message with [SeverityLevel::Alert].
+///
+/// Formatting is skipped entirely if the severity level is disabled.
 #[macro_export]
 macro_rules! alert {
     ($logger:expr, $($arg:tt)+) => {
@@ -20,6 +26,9 @@ macro_rules! alert {
     };
 }
 
+/// Logs a lazily evaluated message with [SeverityLevel::Crit].
+///
+/// Formatting is skipped entirely if the severity level is disabled.
 #[macro_export]
 macro_rules! critical {
     ($logger:expr, $($arg:tt)+) => {
@@ -31,6 +40,9 @@ macro_rules! critical {
     };
 }
 
+/// Logs a lazily evaluated message with [SeverityLevel::Err].
+///
+/// Formatting is skipped entirely if the severity level is disabled.
 #[macro_export]
 macro_rules! error {
     ($logger:expr, $($arg:tt)+) => {
@@ -42,6 +54,9 @@ macro_rules! error {
     };
 }
 
+/// Logs a lazily evaluated message with [SeverityLevel::Warning].
+///
+/// Formatting is skipped entirely if the severity level is disabled.
 #[macro_export]
 macro_rules! warning {
     ($logger:expr, $($arg:tt)+) => {
@@ -53,6 +68,9 @@ macro_rules! warning {
     };
 }
 
+/// Logs a lazily evaluated message with [SeverityLevel::Notice].
+///
+/// Formatting is skipped entirely if the severity level is disabled.
 #[macro_export]
 macro_rules! notice {
     ($logger:expr, $($arg:tt)+) => {
@@ -64,6 +82,9 @@ macro_rules! notice {
     };
 }
 
+/// Logs a lazily evaluated message with [SeverityLevel::Info].
+///
+/// Formatting is skipped entirely if the severity level is disabled.
 #[macro_export]
 macro_rules! info {
     ($logger:expr, $($arg:tt)+) => {
@@ -75,6 +96,9 @@ macro_rules! info {
     };
 }
 
+/// Logs a lazily evaluated message with [SeverityLevel::Debug].
+///
+/// Formatting is skipped entirely if the severity level is disabled.
 #[macro_export]
 macro_rules! debug {
     ($logger:expr, $($arg:tt)+) => {
