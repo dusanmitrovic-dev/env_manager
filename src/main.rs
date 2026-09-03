@@ -1,7 +1,7 @@
-use logger::{Logger, SeverityLevel};
+use logger::{Logger, SeverityLevel, info};
 
 fn main() {
     let logger = Logger::new(SeverityLevel::Debug);
 
-    _ = logger.info("Hello, world!");
+    _ = info!(logger, "Hello, {}!", "world");
 }
