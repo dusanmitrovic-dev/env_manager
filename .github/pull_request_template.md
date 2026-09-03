@@ -15,5 +15,5 @@ Closes #<!-- Enter Issue Number Here -->
 ## Verification
 - [ ] Acceptance Criteria met.
 - [ ] Style Guide respected.
-- [ ] All tests, if any, pass.
+- [ ] All tests, if any, passed.
 - [ ] Documentation updated.
