@@ -3,9 +3,18 @@
 //! Provides logging features with standard severity levels.
 //! Based on: https://en.wikipedia.org/wiki/Syslog.
 
+use std::fmt;
 use std::io::{self, Write};
 
 use crate::error::LoggerError;
+use crate::fixed_buffer::FixedBuffer;
+
+/// The maximum allowed length of the log message. Default value to which
+/// logger will truncate over the limit log messages.
+const MAXIMUM_MESSAGE_LENGTH: usize = 1024;
+const TRUNCATION_SUFFIX: &str = "... [TRUNCATED].";
+const COLON_SEPARATOR: &str = ": ";
+const NEWLINE: &str = "\n";
 
 /// Standard severities of issues.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -46,13 +55,6 @@ impl SeverityLevel {
     }
 }
 
-/// The maximum allowed length of the log message. Default value to which
-/// logger will truncate over the limit log messages.
-const MAXIMUM_MESSAGE_LENGTH: usize = 1024;
-const TRUNCATION_SUFFIX: &str = "... [TRUNCATED].";
-const COLON_SEPARATOR: &str = ": ";
-const NEWLINE: &str = "\n";
-
 /// [Logger] structure with standard severity levels and logging feature methods.
 ///
 /// # Fields
@@ -68,6 +70,32 @@ impl Logger {
         Self {
             minimal_severity_level,
         }
+    }
+
+    /// Checks if a severity level is enabled under the current threshold.
+    #[must_use]
+    #[inline]
+    pub fn is_enabled(&self, severity_level: SeverityLevel) -> bool {
+        (severity_level as u8) <= (self.minimal_severity_level as u8)
+    }
+
+    /// Logs lazily evaluated formatting arguments.
+    ///
+    /// Exits early with `Ok(0)` before executing any formatting if the severity
+    /// is disabled.
+    pub fn log_args(
+        &self,
+        severity_level: SeverityLevel,
+        arguments: fmt::Arguments<'_>,
+    ) -> Result<usize, LoggerError> {
+        if !self.is_enabled(severity_level) {
+            return Ok(0);
+        }
+
+        let mut fixed_buffer = FixedBuffer::<MAXIMUM_MESSAGE_LENGTH>::new();
+        fmt::write(&mut fixed_buffer, arguments)?;
+
+        self.log(severity_level, fixed_buffer.as_str())
     }
 
     /// Logs the [message] with the [severity_level].

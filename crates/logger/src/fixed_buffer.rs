@@ -11,14 +11,14 @@ use std::fmt;
 ///
 /// - [bytes]: Fixed-size array allocated directly within the struct.
 /// - [position]: Current write cursor tracking the number of written bytes.
-struct FixedBuffer<const N: usize> {
+pub struct FixedBuffer<const N: usize> {
     bytes: [u8; N],
     position: usize,
 }
 
 impl<const N: usize> FixedBuffer<N> {
     /// Returns a new, empty [FixedBuffer] initialized with zeros.
-    const fn new() -> Self {
+    pub const fn new() -> Self {
         Self {
             bytes: [0u8; N],
             position: 0,
@@ -26,7 +26,7 @@ impl<const N: usize> FixedBuffer<N> {
     }
 
     /// Returns the written portion of the buffer as a valid UTF-8 string slice.
-    fn as_str(&self) -> &str {
+    pub fn as_str(&self) -> &str {
         from_utf8(&self.bytes[..self.position]).unwrap_or("")
     }
 }
