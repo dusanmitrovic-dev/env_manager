@@ -1,4 +1,4 @@
-# Contributing to Pets Engine
+# Contributing to Environment Manager
 
 ## Engineering Standards
 
