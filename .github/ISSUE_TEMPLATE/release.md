@@ -7,18 +7,28 @@ assignees: ''
 ---
 
 ### Context
-<!-- Why are we cutting this release? (e.g., Reached milestone, hotfix, initial launch). -->
+<!-- Why are we cutting this release? (e.g., Reached a milestone, hotfix, initial launch). -->
+
+<!-- (Optional) Use the block below for visual context: -->
+<!--
+<details>
+  <summary>Expand for visual context</summary>
+
+  [Paste media or logs here]
+
+</details>
+-->
 
 ### Objective
-Prepare repository for `vX.Y.Z` release.
+Prepare the repository for the `vX.Y.Z` release.
 
-### Implementation Details
-- Migrate `[Unreleased]` changes in `CHANGELOG.md`.
-- Bump version to `vX.Y.Z` where applicable.
-- Generate git tag `vX.Y.Z`.
-- Publish GitHub Release artifacts.
+### Release Checklist
+- [ ] Migrate `[Unreleased]` changes to `X.Y.Z` in `CHANGELOG.md`.
+- [ ] Bump version to `vX.Y.Z` where applicable.
+- [ ] Create git tag `vX.Y.Z`.
+- [ ] Publish the GitHub release.
 
 ### Acceptance Criteria
-- [ ] Changelog updated in `main`.
-- [ ] Tag `vX.Y.Z` exists on remote.
-- [ ] GitHub Release published.
+- [ ] Release PR merged into `main`.
+- [ ] Git tag `vX.Y.Z` pushed to remote.
+- [ ] GitHub release published.
