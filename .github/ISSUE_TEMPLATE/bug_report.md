@@ -7,7 +7,10 @@ assignees: ''
 ---
 
 ### Context
-<!-- Describe the background of the problem (e.g., "While reading the README..."). -->
+<!--
+Describe the background of the problem.
+e.g., "While reading the README..."
+-->
 
 <!-- (Optional) Use the block below for visual context: -->
 <!--

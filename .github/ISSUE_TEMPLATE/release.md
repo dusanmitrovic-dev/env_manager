@@ -7,7 +7,10 @@ assignees: ''
 ---
 
 ### Context
-<!-- Why are we cutting this release? (e.g., Reached a milestone, hotfix, initial launch). -->
+<!--
+Why are we cutting this release?
+e.g., "Reached a milestone.", "Critical bug fix.", "Initial launch."
+-->
 
 <!-- (Optional) Use the block below for visual context: -->
 <!--
