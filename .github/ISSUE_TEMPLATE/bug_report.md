@@ -39,7 +39,6 @@ prepend a status tag where needed:
 - `[ADAPTED]` ~~Old step modified to a new approach.~~
 - [ ] Replacement step description.
 
-- `[DEFERRED: vX.Y.Z]` ~~Old step postponed to a future release.~~
 - `[SPLIT: #Issue]` ~~Old step extracted into a dedicated issue.~~
 - `[DROPPED]` ~~Old permanently abandoned step.~~
 -->
