@@ -29,10 +29,13 @@ e.g., "While reading the README..."
 <!-- What should happen or be written instead? -->
 
 ### Reproduction Steps
-<!-- (Optional) Provide steps to reproduce if applicable. -->
+<!--
+(Optional) Provide steps to reproduce:
+e.g.,
 1. Go to '...'.
 2. Run '...'.
 3. Observe the error.
+-->
 
 <!--
 When working on the proposed solution or acceptance criteria, strike through and
