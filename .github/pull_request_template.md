@@ -1,8 +1,5 @@
 ## Objective
-<!--
-Describe the goal of this PR.
-e.g., "Fix navigation bug.", "Add CNAME."
--->
+<!-- Describe the goal of this PR. -->
 
 <!-- (Optional) Use the block below for visual context: -->
 <!--

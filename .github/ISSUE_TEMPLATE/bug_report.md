@@ -7,10 +7,7 @@ assignees: ''
 ---
 
 ### Context
-<!--
-Describe the background of the problem.
-e.g., "While reading the README..."
--->
+<!-- Describe the background of the problem. -->
 
 <!-- (Optional) Use the block below for visual context: -->
 <!--
@@ -49,13 +46,11 @@ prepend a status tag where needed:
 - `[DROPPED]` ~~Old permanently abandoned step.~~
 -->
 
-<!-- (Optional) Use the block below to suggest a fix or workaround: -->
-<!--
 ### Proposed Solution
+<!-- (Optional) Suggest a fix, or leave for developers to plan: -->
 - [ ] Action step 1.
 - [ ] Action step 2.
 - [ ] Action step 3.
--->
 
 ### Acceptance Criteria
 <!-- Add all specific criteria required to close this issue. -->
