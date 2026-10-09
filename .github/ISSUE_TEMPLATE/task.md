@@ -26,21 +26,35 @@ If this is not a feature, change the title prefix and label:
 <!--
 <details>
   <summary>Expand for visual context</summary>
-  [Paste image or logs here]
+
+  [Paste media or logs here]
+
 </details>
 -->
 
 ### Objective
 <!-- High-level goal of this task. -->
 
+<!--
+When working on the proposed solution or acceptance criteria, strike through and
+prepend a status tag where needed:
+- [ ] Unforeseen, newly added prerequisite step.
+
+- `[ADAPTED]` ~~Old step modified to a new approach.~~
+- [ ] Replacement step description.
+
+- `[SPLIT: #Issue]` ~~Old step extracted into a dedicated issue.~~
+- `[DROPPED]` ~~Old permanently abandoned step.~~
+-->
+
 ### Proposed Solution
 <!-- How should we implement this? -->
-- Action step 1.
-- Action step 2.
-- Action step 3.
+- [ ] Action step 1.
+- [ ] Action step 2.
+- [ ] Action step 3.
 
 ### Acceptance Criteria
 <!-- Add all specific criteria required to close this issue. -->
-- [ ] Criteria 1.
-- [ ] Criteria 2.
-- [ ] Criteria 3.
+- [ ] The proposed solution was followed while evaluating and adapting to each clause.
+- [ ] Criterion 2.
+- [ ] Criterion 3.
