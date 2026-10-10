@@ -6,9 +6,9 @@
 [![Donate](https://img.shields.io/badge/Donate-PayPal-3A8FB7?style=flat-square&logo=paypal)](https://paypal.me/dusanmitrovic98)
 [![Support](https://img.shields.io/badge/Support-Ko--fi-3A8FB7?style=flat-square&logo=ko-fi)](https://ko-fi.com/dusanmitrovic)
 [![GitHub release](https://img.shields.io/github/v/release/dusanmitrovic-dev/env_manager?style=flat-square&color=3A8FB7)](https://github.com/dusanmitrovic-dev/env_manager/releases)
-[![GitHub stars](https://img.shields.io/github/stars/dusanmitrovic-dev/env_manager?style=flat-square&color=3A8FB7)](https://github.com/omarchy-themes/omarchy-tranquility-theme/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/dusanmitrovic-dev/env_manager?style=flat-square&color=3A8FB7)](https://github.com/omarchy-themes/omarchy-tranquility-theme/network)
-[![GitHub repo size](https://img.shields.io/github/repo-size/dusanmitrovic-dev/env_manager?style=flat-square&color=3A8FB7)](https://github.com/omarchy-themes/omarchy-tranquility-theme)
+[![GitHub stars](https://img.shields.io/github/stars/dusanmitrovic-dev/env_manager?style=flat-square&color=3A8FB7)](https://github.com/dusanmitrovic-dev/env_manager/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/dusanmitrovic-dev/env_manager?style=flat-square&color=3A8FB7)](https://github.com/dusanmitrovic-dev/env_manager/network)
+[![GitHub repo size](https://img.shields.io/github/repo-size/dusanmitrovic-dev/env_manager?style=flat-square&color=3A8FB7)](https://github.com/dusanmitrovic-dev/env_manager)
 
 *Easily create, manage, and cleanly remove isolated Linux environments.*
 
