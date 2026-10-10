@@ -22,3 +22,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Update the stale project title (#11).
+- Fix stars, forks, and repo size badges to use correct URLs (#15).
