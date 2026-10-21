@@ -18,6 +18,7 @@ pub struct FixedBuffer<const N: usize> {
 
 impl<const N: usize> FixedBuffer<N> {
     /// Returns a new, empty [FixedBuffer] initialized with zeros.
+    #[must_use]
     pub const fn new() -> Self {
         Self {
             bytes: [0u8; N],
@@ -26,6 +27,7 @@ impl<const N: usize> FixedBuffer<N> {
     }
 
     /// Returns the written portion of the buffer as a valid UTF-8 string slice.
+    #[must_use]
     pub fn as_str(&self) -> &str {
         from_utf8(&self.bytes[..self.position]).unwrap_or("")
     }
@@ -33,13 +35,50 @@ impl<const N: usize> FixedBuffer<N> {
 
 impl<const N: usize> fmt::Write for FixedBuffer<N> {
     fn write_str(&mut self, s: &str) -> fmt::Result {
-        let bytes = s.as_bytes();
         let remaining = self.bytes.len().saturating_sub(self.position);
-        let to_copy = bytes.len().min(remaining);
+
+        if remaining == 0 {
+            return Ok(());
+        }
+
+        let bytes = s.as_bytes();
+        let mut to_copy = bytes.len().min(remaining);
+
+        if to_copy < bytes.len() {
+            while to_copy > 0 && !s.is_char_boundary(to_copy) {
+                to_copy -= 1;
+            }
+        }
 
         self.bytes[self.position..self.position + to_copy].copy_from_slice(&bytes[..to_copy]);
         self.position += to_copy;
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::fmt::Write;
+
+    use super::*;
+
+    /// Tests base workflow when writing string to a fixed buffer.
+    #[test]
+    fn test_buffer_write_str() {
+        let mut buffer = FixedBuffer::<7>::new();
+
+        assert!(Write::write_str(&mut buffer, "abc🦀").is_ok());
+        assert_eq!(buffer.as_str(), "abc🦀");
+    }
+
+    /// Tests if safe truncation happens when writing utf8 string to a fixed
+    /// buffer without cutting the emoji due to small buffer size.
+    #[test]
+    fn test_utf8_truncation_on_buffer_write_str() {
+        let mut buffer_overflow = FixedBuffer::<5>::new();
+
+        assert!(Write::write_str(&mut buffer_overflow, "abc🦀").is_ok());
+        assert_eq!(buffer_overflow.as_str(), "abc");
     }
 }
