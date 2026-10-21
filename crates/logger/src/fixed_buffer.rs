@@ -33,6 +33,12 @@ impl<const N: usize> FixedBuffer<N> {
     }
 }
 
+impl<const N: usize> Default for FixedBuffer<N> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<const N: usize> fmt::Write for FixedBuffer<N> {
     fn write_str(&mut self, s: &str) -> fmt::Result {
         let remaining = self.bytes.len().saturating_sub(self.position);
