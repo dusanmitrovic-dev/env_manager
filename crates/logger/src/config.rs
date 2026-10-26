@@ -1,8 +1,8 @@
-use crate::logger::SeverityLevel;
+use crate::severity_level::SeverityLevel;
 
 /// Configuration parameters for the [Logger].
 ///
-/// # Field
+/// # Fields
 ///
 /// - [minimal_severity_level]: Minimal logging severity level threshold.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

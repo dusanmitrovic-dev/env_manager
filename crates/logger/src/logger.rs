@@ -8,6 +8,7 @@ use std::io::{self, Write};
 
 use crate::error::LoggerError;
 use crate::fixed_buffer::FixedBuffer;
+use crate::severity_level::SeverityLevel;
 
 /// The maximum allowed length of the log message. Default value to which
 /// logger will truncate over the limit log messages.
@@ -15,45 +16,6 @@ const MAXIMUM_MESSAGE_LENGTH: usize = 1024;
 const TRUNCATION_SUFFIX: &str = "... [TRUNCATED].";
 const COLON_SEPARATOR: &str = ": ";
 const NEWLINE: &str = "\n";
-
-/// Standard severities of issues.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-#[repr(u8)]
-pub enum SeverityLevel {
-    /// System is unusable.
-    Emerg = 0,
-    /// Action must be taken immediately.
-    Alert = 1,
-    /// Critical conditions.
-    Crit = 2,
-    /// Error conditions.
-    Err = 3,
-    /// Warning conditions.
-    Warning = 4,
-    /// Normal but significant conditions.
-    Notice = 5,
-    /// Informational messages.
-    Info = 6,
-    /// Debug-level messages.
-    Debug = 7,
-}
-
-impl SeverityLevel {
-    /// Returns severity level as an uppercase tag string in square brackets.
-    #[must_use]
-    pub const fn as_tag(self) -> &'static str {
-        match self {
-            Self::Emerg => "[EMERGENCY]",
-            Self::Alert => "[ALERT]",
-            Self::Crit => "[CRITICAL]",
-            Self::Err => "[ERROR]",
-            Self::Warning => "[WARNING]",
-            Self::Notice => "[NOTICE]",
-            Self::Info => "[INFO]",
-            Self::Debug => "[DEBUG]",
-        }
-    }
-}
 
 /// [Logger] structure with standard severity levels and logging feature methods.
 ///
