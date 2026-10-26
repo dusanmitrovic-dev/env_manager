@@ -34,6 +34,13 @@ impl Logger {
         }
     }
 
+    /// Returns the configured minimal severity level threshold.
+    #[must_use]
+    #[inline]
+    pub const fn minimal_severity_level(&self) -> SeverityLevel {
+        self.minimal_severity_level
+    }
+
     /// Checks if a severity level is enabled under the current threshold.
     #[must_use]
     #[inline]
