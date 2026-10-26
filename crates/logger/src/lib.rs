@@ -1,3 +1,4 @@
+pub mod config;
 pub mod error;
 pub mod fixed_buffer;
 pub mod logger;
