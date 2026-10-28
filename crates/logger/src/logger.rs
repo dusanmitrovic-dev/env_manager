@@ -6,6 +6,8 @@
 use std::fmt;
 use std::io::{self, Write};
 
+use crate::builder::LoggerBuilder;
+use crate::config::LoggerConfig;
 use crate::error::LoggerError;
 use crate::fixed_buffer::FixedBuffer;
 use crate::severity_level::SeverityLevel;
@@ -23,29 +25,44 @@ const NEWLINE: &str = "\n";
 ///
 /// - [minimal_severity_level]: Minimal logging severity level.
 pub struct Logger {
-    minimal_severity_level: SeverityLevel,
+    config: LoggerConfig,
 }
 
 impl Logger {
+    /// Creates a new [Logger] with a specific [SeverityLevel].
     #[must_use]
     pub const fn new(minimal_severity_level: SeverityLevel) -> Self {
         Self {
-            minimal_severity_level,
+            config: LoggerConfig {
+                minimal_severity_level,
+            },
         }
+    }
+
+    /// Creates a [Logger] directly from a [LoggerConfig] object.
+    #[must_use]
+    pub const fn from_config(config: LoggerConfig) -> Self {
+        Self { config }
+    }
+
+    /// Returns a [LoggerBuilder] for configurable initialization.
+    #[must_use]
+    pub const fn builder() -> LoggerBuilder {
+        LoggerBuilder::new()
     }
 
     /// Returns the configured minimal severity level threshold.
     #[must_use]
     #[inline]
     pub const fn minimal_severity_level(&self) -> SeverityLevel {
-        self.minimal_severity_level
+        self.config.minimal_severity_level
     }
 
     /// Checks if a severity level is enabled under the current threshold.
     #[must_use]
     #[inline]
     pub fn is_enabled(&self, severity_level: SeverityLevel) -> bool {
-        (severity_level as u8) <= (self.minimal_severity_level as u8)
+        (severity_level as u8) <= (self.config.minimal_severity_level as u8)
     }
 
     /// Logs lazily evaluated formatting arguments.
@@ -78,7 +95,7 @@ impl Logger {
     ///
     /// The exact number of bytes written.
     pub fn log(&self, severity_level: SeverityLevel, message: &str) -> Result<usize, LoggerError> {
-        if severity_level > self.minimal_severity_level {
+        if severity_level > self.config.minimal_severity_level {
             return Ok(0);
         }
 
