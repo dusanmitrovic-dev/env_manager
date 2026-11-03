@@ -40,4 +40,15 @@ impl SeverityLevel {
             Self::Debug => "[DEBUG]",
         }
     }
+
+    /// Returns `true` if this severity level represents a warning, error, or
+    /// emergency condition that should be routed to `stderr`.
+    ///
+    /// Under standard Unix CLI conventions, levels 0..=4 route to `stderr`,
+    /// while levels 5..=7 route to `stdout`.
+    #[must_use]
+    #[inline]
+    pub const fn is_stderr(self) -> bool {
+        (self as u8) <= (Self::Warning as u8)
+    }
 }

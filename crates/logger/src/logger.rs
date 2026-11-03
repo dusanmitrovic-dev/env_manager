@@ -12,18 +12,24 @@ use crate::error::LoggerError;
 use crate::fixed_buffer::FixedBuffer;
 use crate::severity_level::SeverityLevel;
 
-/// The maximum allowed length of the log message. Default value to which
-/// logger will truncate over the limit log messages.
+/// The maximum allowed length of the log message.
+///
+/// Messages exceeding this limit will be safely truncated.
 const MAXIMUM_MESSAGE_LENGTH: usize = 1024;
+/// Suffix used on messages which exceed maximum message length.
 const TRUNCATION_SUFFIX: &str = "... [TRUNCATED].";
+/// Separator used between severity level tags and log messages.
 const COLON_SEPARATOR: &str = ": ";
+/// Newline character appended to terminate each log frame.
 const NEWLINE: &str = "\n";
+/// Compile-time constant representing the fixed formatting overhead in log messages.
+const STATIC_OVERHEAD: usize = COLON_SEPARATOR.len() + TRUNCATION_SUFFIX.len() + NEWLINE.len();
 
 /// [Logger] structure with standard severity levels and logging feature methods.
 ///
 /// # Fields
 ///
-/// - [minimal_severity_level]: Minimal logging severity level.
+/// - [config]: The configuration parameters of this logger.
 pub struct Logger {
     config: LoggerConfig,
 }
@@ -40,6 +46,10 @@ impl Logger {
     }
 
     /// Creates a [Logger] directly from a [LoggerConfig] object.
+    ///
+    /// # Arguments
+    ///
+    /// - [config]: The configuration object to initialize the logger with.
     #[must_use]
     pub const fn from_config(config: LoggerConfig) -> Self {
         Self { config }
@@ -59,6 +69,10 @@ impl Logger {
     }
 
     /// Checks if a severity level is enabled under the current threshold.
+    ///
+    /// # Arguments
+    ///
+    /// - [severity_level]: The level to evaluate against the configured threshold.
     #[must_use]
     #[inline]
     pub fn is_enabled(&self, severity_level: SeverityLevel) -> bool {
@@ -69,6 +83,16 @@ impl Logger {
     ///
     /// Exits early with `Ok(0)` before executing any formatting if the severity
     /// is disabled.
+    ///
+    /// # Arguments
+    ///
+    /// - [severity_level]: Severity level of the log message.
+    /// - [arguments]: Lazily captured format arguments.
+    ///
+    /// # Errors
+    ///
+    /// - [LoggerError::Format]: On formatting errors.
+    /// - [LoggerError::Io]: On write failures.
     pub fn log_args(
         &self,
         severity_level: SeverityLevel,
@@ -79,6 +103,7 @@ impl Logger {
         }
 
         let mut fixed_buffer = FixedBuffer::<MAXIMUM_MESSAGE_LENGTH>::new();
+
         fmt::write(&mut fixed_buffer, arguments)?;
 
         self.log(severity_level, fixed_buffer.as_str())
@@ -95,14 +120,31 @@ impl Logger {
     ///
     /// The exact number of bytes written.
     pub fn log(&self, severity_level: SeverityLevel, message: &str) -> Result<usize, LoggerError> {
-        if severity_level > self.config.minimal_severity_level {
+        if !self.is_enabled(severity_level) {
             return Ok(0);
         }
 
         let tag = severity_level.as_tag();
 
-        let total_overhead =
-            tag.len() + COLON_SEPARATOR.len() + TRUNCATION_SUFFIX.len() + NEWLINE.len();
+        let (safe_message, is_truncated) = Self::prepare_payload(tag, message);
+
+        Self::dispatch_output(severity_level, tag, safe_message, is_truncated)
+    }
+
+    /// Calculates formatting overhead, asserts budget invariants, and safely
+    /// truncates the payload.
+    ///
+    /// # Arguments
+    ///
+    /// - [tag]: Severity level tag string.
+    /// - [message]: Raw message slice.
+    ///
+    /// # Returns
+    ///
+    /// A tuple containing the bounded message slice and a boolean indicating
+    /// if the truncation occurred.
+    fn prepare_payload<'a>(tag: &'static str, message: &'a str) -> (&'a str, bool) {
+        let total_overhead = tag.len() + STATIC_OVERHEAD;
 
         assert!(
             MAXIMUM_MESSAGE_LENGTH > total_overhead,
@@ -113,20 +155,101 @@ impl Logger {
 
         let (safe_message, is_truncated) = Self::truncate_log_utf8(message, maximum_message_budget);
 
-        let bytes_written = if (severity_level as u8) <= (SeverityLevel::Warning as u8) {
-            let stderr = io::stderr();
-            let mut handle = stderr.lock();
-            Self::write_and_count(&mut handle, tag, safe_message, is_truncated)?
-        } else {
-            let stdout = io::stdout();
-            let mut handle = stdout.lock();
-            Self::write_and_count(&mut handle, tag, safe_message, is_truncated)?
-        };
+        assert!(
+            safe_message.len() <= maximum_message_budget,
+            "Payload length exceeded calculated budget."
+        );
+
+        (safe_message, is_truncated)
+    }
+
+    /// Truncates the [message] if its length breaches [maximum_bytes].
+    ///
+    /// # Arguments
+    ///
+    /// - [message]: The log message which might be truncated.
+    /// - [maximum_bytes]: The maximum allowed message length and truncation trigger.
+    ///
+    /// # Returns
+    ///
+    /// A tuple containing:
+    /// - `&str`: The safe, bounded slice.
+    /// - `bool`: `true` if truncation occurred, `false` otherwise.
+    #[must_use]
+    fn truncate_log_utf8(message: &str, maximum_bytes: usize) -> (&str, bool) {
+        if message.len() <= maximum_bytes {
+            return (message, false);
+        }
+
+        let mut boundary = maximum_bytes;
+        while boundary > 0 && !message.is_char_boundary(boundary) {
+            boundary -= 1;
+        }
 
         assert!(
-            bytes_written > 0,
-            "Zero bytes written for non-filtered log."
+            boundary <= maximum_bytes,
+            "Boundary cannot be longer than maximum_bytes."
         );
+
+        let truncated_message = &message[..boundary];
+
+        assert!(
+            truncated_message.len() <= maximum_bytes,
+            "Truncated message length cannot be longer than maximum_bytes."
+        );
+
+        (truncated_message, true)
+    }
+
+    /// Routes the formatted payload to the appropriate terminal stream and
+    /// verifies output bounds.
+    ///
+    /// # Arguments
+    ///
+    /// - [severity_level]: Severity level determining stream routing.
+    /// - [tag]: Severity level tag string.
+    /// - [message]: Bounded message slice.
+    /// - [is_truncated]: Flag indicating if message exceeded budget.
+    ///
+    /// # Returns
+    ///
+    /// The exact number of bytes written to the stream, or `Ok(0)` on broken
+    /// pipe.
+    ///
+    /// # Errors
+    ///
+    /// Returns [LoggerError::Io] if an unrecoverable terminal I/O failure
+    /// occurs.
+    fn dispatch_output(
+        severity_level: SeverityLevel,
+        tag: &'static str,
+        message: &str,
+        is_truncated: bool,
+    ) -> Result<usize, LoggerError> {
+        assert!(
+            message.len() <= MAXIMUM_MESSAGE_LENGTH,
+            "Incoming message payload exceeded MAXIMUM_MESSAGE_LENGTH."
+        );
+
+        let mut stderr_handle;
+        let mut stdout_handle;
+
+        let writer: &mut dyn Write = if severity_level.is_stderr() {
+            stderr_handle = io::stderr().lock();
+
+            &mut stderr_handle
+        } else {
+            stdout_handle = io::stdout().lock();
+
+            &mut stdout_handle
+        };
+
+        let bytes_written = Self::write_log_frame(writer, tag, message, is_truncated)?;
+
+        if bytes_written == 0 {
+            return Ok(0);
+        }
+
         assert!(
             bytes_written <= MAXIMUM_MESSAGE_LENGTH,
             "Bytes written exceeded MAXIMUM_MESSAGE_LENGTH."
@@ -135,77 +258,98 @@ impl Logger {
         Ok(bytes_written)
     }
 
-    fn write_and_count<W: Write>(
-        writer: &mut W,
+    /// Fault-tolerant writer that handles [io::ErrorKind::BrokenPipe].
+    ///
+    /// # Arguments
+    ///
+    /// - [writer]: Target I/O writer.
+    /// - [tag]: Severity level tag string.
+    /// - [message]: Bounded message slice.
+    /// - [is_truncated]: Flag indicating if message exceeded budget.
+    ///
+    /// # Returns
+    ///
+    /// The exact number of bytes written, or `Ok(0)` if down stream pipe was
+    /// broken.
+    ///
+    /// # Errors
+    ///
+    /// Returns [LoggerError::Io] on unrecoverable terminal write failures.
+    fn write_log_frame(
+        writer: &mut dyn Write,
+        tag: &'static str,
+        message: &str,
+        is_truncated: bool,
+    ) -> Result<usize, LoggerError> {
+        match Self::write_stream(writer, tag, message, is_truncated) {
+            Ok(bytes) => Ok(bytes),
+            Err(ref err) if err.kind() == io::ErrorKind::BrokenPipe => Ok(0),
+            Err(err) => Err(LoggerError::Io(err)),
+        }
+    }
+
+    /// Writes the sequential frame slices to the stream and returns exact
+    /// bytes written.
+    ///
+    /// # Arguments
+    ///
+    /// - [writer]: Target I/O writer.
+    /// - [tag]: Severity level tag string.
+    /// - [message]: Bounded message slice.
+    /// - [is_truncated]: Flag indicating if message exceeded budget.
+    ///
+    /// # Returns
+    ///
+    /// The exact number of bytes sequentially written.
+    ///
+    /// # Errors
+    ///
+    /// Returns [io::Error] if any underlying slice fails to write or flush.
+    fn write_stream(
+        writer: &mut dyn Write,
         tag: &'static str,
         message: &str,
         is_truncated: bool,
     ) -> io::Result<usize> {
         assert!(!tag.is_empty(), "Tag cannot be empty.");
 
-        let mut total_bytes = 0;
+        let mut total_bytes: usize = 0;
 
-        writer.write_all(tag.as_bytes())?;
-        total_bytes += tag.len();
-
-        assert_eq!(total_bytes, tag.len(), "Write tag total bytes mismatch.");
-
-        writer.write_all(COLON_SEPARATOR.as_bytes())?;
-        total_bytes += COLON_SEPARATOR.len();
-
-        assert_eq!(
-            total_bytes,
-            tag.len() + COLON_SEPARATOR.len(),
-            "Write colon separator total bytes mismatch."
-        );
-
-        writer.write_all(message.as_bytes())?;
-        total_bytes += message.len();
-
-        assert_eq!(
-            total_bytes,
-            tag.len() + COLON_SEPARATOR.len() + message.len(),
-            "Write message total bytes mismatch."
-        );
+        total_bytes += Self::write_slice(writer, tag.as_bytes())?;
+        total_bytes += Self::write_slice(writer, COLON_SEPARATOR.as_bytes())?;
+        total_bytes += Self::write_slice(writer, message.as_bytes())?;
 
         if is_truncated {
-            writer.write_all(TRUNCATION_SUFFIX.as_bytes())?;
-            total_bytes += TRUNCATION_SUFFIX.len();
-
-            assert_eq!(
-                total_bytes,
-                tag.len() + COLON_SEPARATOR.len() + message.len() + TRUNCATION_SUFFIX.len(),
-                "Write truncation suffix total bytes mismatch."
-            );
+            total_bytes += Self::write_slice(writer, TRUNCATION_SUFFIX.as_bytes())?;
         }
 
-        writer.write_all(NEWLINE.as_bytes())?;
-        total_bytes += NEWLINE.len();
+        total_bytes += Self::write_slice(writer, NEWLINE.as_bytes())?;
 
-        const NEWLINE_TOTAL_MISMATCH: &str = "Write newline character total bytes mismatch.";
-        if is_truncated {
-            assert_eq!(
-                total_bytes,
-                tag.len()
-                    + COLON_SEPARATOR.len()
-                    + message.len()
-                    + TRUNCATION_SUFFIX.len()
-                    + NEWLINE.len(),
-                "{}",
-                NEWLINE_TOTAL_MISMATCH
-            );
-        } else {
-            assert_eq!(
-                total_bytes,
-                tag.len() + COLON_SEPARATOR.len() + message.len() + NEWLINE.len(),
-                "{}",
-                NEWLINE_TOTAL_MISMATCH
-            );
-        }
+        assert!(
+            total_bytes > 0,
+            "Successfully formatted stream yielded zero bytes."
+        );
 
         writer.flush()?;
 
         Ok(total_bytes)
+    }
+
+    /// Writes a single byte slice to the writer and returns the exact number
+    /// of bytes written.
+    ///
+    /// # Arguments
+    ///
+    /// - [writer]: Target I/O writer.
+    /// - [bytes]: Raw byte slice to write.
+    ///
+    /// # Errors
+    ///
+    /// Returns [io::Error] if the underlying stream rejects the write.
+    fn write_slice(writer: &mut dyn Write, bytes: &[u8]) -> io::Result<usize> {
+        writer.write_all(bytes)?;
+
+        Ok(bytes.len())
     }
 
     /// Logs the [message] with [SeverityLevel::Emerg].
@@ -254,44 +398,6 @@ impl Logger {
     #[inline]
     pub fn debug(&self, message: &str) -> Result<usize, LoggerError> {
         self.log(SeverityLevel::Debug, message)
-    }
-
-    /// Truncates the [message] if its length breaches [maximum_bytes].
-    ///
-    /// # Arguments
-    ///
-    /// - [message]: The log message which might be truncated.
-    /// - [maximum_bytes]: The maximum allowed message length and truncation trigger.
-    ///
-    /// # Returns
-    ///
-    /// A tuple containing:
-    /// - `&str`: The safe, bounded slice.
-    /// - `bool`: `true` if truncation occurred, `false` otherwise.
-    #[must_use]
-    fn truncate_log_utf8(message: &str, maximum_bytes: usize) -> (&str, bool) {
-        if message.len() <= maximum_bytes {
-            return (message, false);
-        }
-
-        let mut boundary = maximum_bytes;
-        while boundary > 0 && !message.is_char_boundary(boundary) {
-            boundary -= 1;
-        }
-
-        assert!(
-            boundary <= maximum_bytes,
-            "Boundary cannot be longer than maximum_bytes."
-        );
-
-        let truncated_message = &message[..boundary];
-
-        assert!(
-            truncated_message.len() <= maximum_bytes,
-            "Truncated message length cannot be longer than maximum_bytes."
-        );
-
-        (truncated_message, true)
     }
 }
 
