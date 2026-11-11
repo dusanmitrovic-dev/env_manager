@@ -1,7 +1,9 @@
 use logger::{Logger, SeverityLevel, info};
 
 fn main() {
-    let logger = Logger::new(SeverityLevel::Debug);
+    let _ = Logger::builder()
+        .with_minimal_severity_level(SeverityLevel::Debug)
+        .initialize();
 
-    _ = info!(logger, "Hello, {}!", "world");
+    _ = info!("Hello, world!");
 }
