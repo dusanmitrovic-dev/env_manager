@@ -8,6 +8,7 @@ use std::io;
 pub enum LoggerError {
     Io(io::Error),
     Format(fmt::Error),
+    AlreadyInitialized,
 }
 
 impl From<io::Error> for LoggerError {
@@ -30,6 +31,9 @@ impl Display for LoggerError {
             }
             Self::Format(error) => {
                 write!(formatter, "Formatting error: {error}")
+            }
+            Self::AlreadyInitialized => {
+                write!(formatter, "Global logger has already been initialized.")
             }
         }
     }
